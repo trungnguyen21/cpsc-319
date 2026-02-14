@@ -1,0 +1,14 @@
+[project]
+name = "cpsc-319"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "asyncpg>=0.31.0",
+    "fastapi[standard]>=0.128.5",
+    "pgsql>=2.0",
+    "pwdlib[argon2]>=0.3.0",
+    "pyjwt>=2.11.0",
+    "python-dotenv>=1.2.1",
+]
