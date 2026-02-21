@@ -66,7 +66,11 @@ export function Login() {
                 {/* TODO: submit button */}
                 
                 <Button 
-                    sx={{ mt: 4 }}
+                    sx={{ 
+                        mt: 4, 
+                        backgroundColor: "#D1315E",
+                        width: 190
+                    }}
                     variant="contained"
                     onClick={() => navigate("/home")}
                 >
