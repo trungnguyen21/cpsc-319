@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
 import { Button, Box, TextField } from "@mui/material";
+import LoginAppBar from "../components/login_appbar";
 
 
 // MUI text field: https://mui.com/material-ui/react-text-field/
@@ -13,6 +14,8 @@ export function Login() {
     // TODO: handle login 
     
     return (
+    <>
+        <LoginAppBar />
         <Box
             sx={{ 
                 display: 'flex', 
@@ -56,8 +59,8 @@ export function Login() {
                     noValidate
                     autoComplete="off"
                 >
-                    <TextField id="standard-basic" label="Username" variant="standard"/>
-                    <TextField id="standard-basic" label="Password" variant="standard"/>
+                    <TextField id="standard-basic" label="Username*" variant="standard"/>
+                    <TextField id="standard-basic" label="Password*" variant="standard"/>
                 </Box>
 
                 {/* TODO: submit button */}
@@ -70,13 +73,10 @@ export function Login() {
                     Sign In
                 </Button>
         
-
             </Box>
 
-        </Box>
-       
-
-              
+        </Box> 
+     </>
          
     )
 }
