@@ -19,7 +19,7 @@ Command to run the backend server:
 
 2. Front-end
 - `cd frontend`
-- `npm run start`
+- `npm run dev`
 
 ## Instruction for frontend:
 - Call /auth/token with username/password
