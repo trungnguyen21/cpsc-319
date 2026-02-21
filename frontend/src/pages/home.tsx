@@ -1,3 +1,9 @@
+import HomeAppBar from "../components/appbar";
+
 export function Home() {
-    return <p>filler</p>
+    return (
+        <>
+        <HomeAppBar />
+        </>
+    )
 }
