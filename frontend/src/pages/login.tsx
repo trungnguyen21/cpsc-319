@@ -1,12 +1,14 @@
 import { useState } from "react"
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import { useNavigate } from "react-router-dom";
+import { Button, Box, TextField } from "@mui/material";
+
 
 // MUI text field: https://mui.com/material-ui/react-text-field/
 export function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     //const [showPassword, setShowPass] = useState(false)
+    const navigate = useNavigate();
 
     // TODO: handle login 
     
@@ -37,8 +39,9 @@ export function Login() {
                     bgcolor: 'F6F6F6',
                     border: '2px solid #0A0317',
                     boxShadow: 3,
-                    p: 8,
-                    borderRadius: 5
+                    p: 6,
+                    borderRadius: 5,
+                    gap: 4
                 }}
             >
                 <p style={{ margin: 0}}>Sign In</p>
@@ -59,7 +62,13 @@ export function Login() {
 
                 {/* TODO: submit button */}
                 
-           
+                <Button 
+                    sx={{ mt: 4 }}
+                    variant="contained"
+                    onClick={() => navigate("/home")}
+                >
+                    Sign In
+                </Button>
         
 
             </Box>
