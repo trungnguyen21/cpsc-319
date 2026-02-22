@@ -3,10 +3,13 @@ Benevity — Intelligent Nonprofit Matching: Multi-Agent System
 ==============================================================
 Agents
 ------
-    research_agent    Gemini 1.5 Flash + Google Search grounding
-    synthesis_agent   Gemini 1.5 Pro   (NO tools — can only use research data)
-    validation_agent  Gemini 1.5 Pro   (fact-check + grammar/readability audit)
-    orchestrator      Gemini 1.5 Pro   (drives the loop via AgentTool calls)
+    research_agent    Gemini 2.0 Flash + Google Search grounding
+    synthesis_agent   Gemini 2.0 Flash  (NO tools — can only use research data)
+    validation_agent  Gemini 2.0 Flash  (fact-check + grammar/readability audit)
+    orchestrator      Gemini 2.0 Flash  (drives the loop via AgentTool calls)
+
+    All agents use gemini-2.0-flash-001 for the MVP — cheapest viable model
+    that still handles complex instruction-following well.
 
 Loop logic (inside the Orchestrator)
 ---------
@@ -40,7 +43,11 @@ import uuid
 from datetime import datetime
 from typing import Any
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+
+# Load .env before anything reads os.environ
+load_dotenv()
 
 # --------------------------------------------------------------------------- #
 # Google ADK                                                                    #
@@ -58,9 +65,17 @@ logger = logging.getLogger(__name__)
 # Vertex AI backend — ADK reads these env-vars automatically                   #
 # Set GCP_PROJECT_ID and GCP_LOCATION in your .env                             #
 # --------------------------------------------------------------------------- #
-os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "TRUE")
-os.environ.setdefault("GOOGLE_CLOUD_PROJECT", os.getenv("GCP_PROJECT_ID", ""))
-os.environ.setdefault("GOOGLE_CLOUD_LOCATION", os.getenv("GCP_LOCATION", "us-central1"))
+# Switch between backends:
+#   Option A — Google AI Studio (free API key, simplest for MVP):
+#              Set GOOGLE_GENAI_USE_VERTEXAI=FALSE and GOOGLE_API_KEY in .env
+#   Option B — Vertex AI (full GCP project, production path):
+#              Set GOOGLE_GENAI_USE_VERTEXAI=TRUE, GCP_PROJECT_ID, GCP_LOCATION in .env
+#              and run: gcloud auth application-default login
+_use_vertexai = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "FALSE").upper()
+os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", _use_vertexai)
+if _use_vertexai == "TRUE":
+    os.environ.setdefault("GOOGLE_CLOUD_PROJECT", os.getenv("GCP_PROJECT_ID", ""))
+    os.environ.setdefault("GOOGLE_CLOUD_LOCATION", os.getenv("GCP_LOCATION", "us-central1"))
 
 _APP_NAME = "benevity_mas"
 _MAX_REWRITES = 2   # Synthesis can be asked to rewrite at most 2 times
@@ -147,7 +162,7 @@ Return a structured RESEARCH REPORT with these sections:
 
 research_agent = Agent(
     name="research_agent",
-    model="gemini-1.5-flash-001",
+    model="gemini-2.0-flash-001",
     description=(
         "Researches a nonprofit's verified impact data from the last 12 months "
         "using grounded Google Search. Returns a structured research report."
@@ -199,7 +214,7 @@ OUTPUT: Return the story text ONLY — no headers, labels, or commentary.
 
 synthesis_agent = Agent(
     name="synthesis_agent",
-    model="gemini-1.5-pro-001",
+    model="gemini-2.0-flash-001",
     description=(
         "Converts the research report into a 2-paragraph donor-facing Impact "
         "Story using ONLY verified facts from the research. No internet access."
@@ -267,7 +282,7 @@ PASS 3 — VERDICT
 
 validation_agent = Agent(
     name="validation_agent",
-    model="gemini-1.5-pro-001",
+    model="gemini-2.0-flash-001",
     description=(
         "Fact-checks the story draft against the research report AND audits "
         "grammar/readability. Returns structured JSON: APPROVED or REJECTED."
@@ -337,7 +352,7 @@ IMPORTANT
 
 orchestrator = Agent(
     name="orchestrator",
-    model="gemini-1.5-pro-001",
+    model="gemini-2.0-flash-001",
     description="Orchestrates Research → Synthesis → Validation with retry loop.",
     instruction=_ORCHESTRATOR_INSTRUCTION,
     tools=[
@@ -354,14 +369,37 @@ orchestrator = Agent(
 
 def _extract_json(text: str) -> str:
     """
-    Pull the first {...} JSON block out of a string.
-    Handles cases where the LLM wraps output in markdown code fences.
+    Robustly extract a JSON object from LLM output that may contain:
+      - Prose before/after the JSON
+      - Markdown code fences (```json ... ```)
+      - Invalid \\' escape sequences (LLM sometimes escapes single quotes)
+      - A nested wrapper key e.g. {"validation_agent_response": {...}}
     """
-    # Try to find a raw JSON object
+    # 1. Strip markdown code fences
+    text = re.sub(r"```(?:json)?\s*", "", text).strip()
+
+    # 2. Extract the outermost {...} block
     match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match:
-        return match.group(0)
-    return text
+    if not match:
+        return text
+    json_str = match.group(0)
+
+    # 3. Fix invalid \' escape sequences (not valid JSON — single quotes don't need escaping)
+
+    json_str = re.sub(r"\\'", "'", json_str)
+
+    # 4. Unwrap nested wrapper key if the orchestrator added one
+    #    e.g. {"validation_agent_response": { ...actual payload... }}
+    try:
+        candidate = json.loads(json_str)
+        if isinstance(candidate, dict) and len(candidate) == 1:
+            inner = next(iter(candidate.values()))
+            if isinstance(inner, dict) and "status" in inner:
+                json_str = json.dumps(inner)
+    except Exception:
+        pass  # leave as-is and let the caller handle parse errors
+
+    return json_str
 
 
 async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]:
@@ -407,6 +445,7 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
     )
 
     final_text: str | None = None
+    _pipeline_start = datetime.now()
 
     try:
         async for event in runner.run_async(
@@ -427,6 +466,8 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
     except Exception as exc:
         logger.exception("MAS pipeline error for org '%s'.", org_id)
         raise RuntimeError(f"Impact story generation failed: {exc}") from exc
+
+    total_elapsed = round((datetime.now() - _pipeline_start).total_seconds(), 1)
 
     if final_text is None:
         raise RuntimeError("Pipeline completed but produced no output.")
@@ -451,6 +492,7 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
             "writing_issues": [],
             "facts_summary": "",
             "org_id": org_id,
+            "total_elapsed": total_elapsed,
         }
 
     return {
@@ -460,6 +502,7 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
         "writing_issues": result.writing_issues,
         "facts_summary": result.facts_summary,
         "org_id": org_id,
+        "total_elapsed": total_elapsed,
     }
 
 
@@ -476,27 +519,29 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
 async def _main() -> None:
     import textwrap
 
-    test_org    = "St. Jude Children's Research Hospital"
+    test_org    = "American Red Cross"
     test_prompt = (
-        "Focus on pediatric cancer research outcomes and fundraising milestones "
-        "from the past year. Audience: corporate HR managers considering a "
-        "workplace giving campaign."
+        "A donor recently contributed to the American Red Cross and wants to know "
+        "the real-world impact of their generosity. Research the organization's most "
+        "recent activities — focusing on the March 2025 Myanmar earthquake response — "
+        "using public data, news updates, and published reports. Synthesize this into "
+        "a compelling Impact Story that closes the feedback loop for the donor, shows "
+        "them exactly what was accomplished with contributions like theirs, and "
+        "inspires continued generosity."
     )
 
     bar = "=" * 67
     print(f"\n{bar}")
-    print("  Benevity MAS — Impact Story Generator  (MVP Demo)")
+    print("  Benevity — Impact Story Generator  (MVP Demo)")
     print(bar)
     print(f"  Org    : {test_org}")
-    print(f"  Prompt : {textwrap.shorten(test_prompt, width=55)}")
+    print(f"  Prompt : {test_prompt}")
     print(f"  Time   : {datetime.now().strftime('%H:%M:%S')}")
     print(f"{bar}\n")
-    print("  Step 1/3 — Research Agent  (Google Search grounding)...")
-    print("  Step 2/3 — Synthesis Agent (writing story draft)...")
-    print("  Step 3/3 — Validation Agent (fact-check + editing)...")
-    print("  (The pipeline may take 30–90 seconds on first run)\n")
 
+    print("  Running pipeline (Research → Synthesis → Validation)...", end="", flush=True)
     result = await generate_impact_story(test_org, test_prompt)
+    print(f" done ({result.get('total_elapsed', '?')}s)\n")
 
     print(f"\n{bar}")
     print(f"  FINAL STATUS : {result['status']}")
