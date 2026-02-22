@@ -456,12 +456,17 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
             if hasattr(event, "author"):
                 logger.debug("Event from agent: %s", event.author)
 
-            if event.is_final_response():
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if hasattr(part, "text") and part.text:
+            # Collect any text emitted by the orchestrator.
+            # is_final_response() can fire on a function_call event (no text),
+            # so we track the last text seen across all orchestrator events and
+            # fall back to that if the final event has no text.
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if hasattr(part, "text") and part.text:
+                        # Only capture text from the top-level orchestrator
+                        if getattr(event, "author", None) == "orchestrator":
                             final_text = part.text
-                            break
+                        break
 
     except Exception as exc:
         logger.exception("MAS pipeline error for org '%s'.", org_id)
@@ -522,12 +527,10 @@ async def _main() -> None:
     test_org    = "American Red Cross"
     test_prompt = (
         "A donor recently contributed to the American Red Cross and wants to know "
-        "the real-world impact of their generosity. Research the organization's most "
-        "recent activities — focusing on the March 2025 Myanmar earthquake response — "
-        "using public data, news updates, and published reports. Synthesize this into "
-        "a compelling Impact Story that closes the feedback loop for the donor, shows "
-        "them exactly what was accomplished with contributions like theirs, and "
-        "inspires continued generosity."
+        "the real-world impact of their generosity. Focus on the March 2025 Myanmar "
+        "earthquake response — relief efforts, number of people helped, shelters "
+        "provided, funds raised, and aid delivered. The story should close the "
+        "feedback loop for the donor and inspire continued giving."
     )
 
     bar = "=" * 67
