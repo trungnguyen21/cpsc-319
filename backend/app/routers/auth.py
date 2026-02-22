@@ -55,8 +55,5 @@ async def signup(form_data: Annotated[dict, UserSignUp],
             detail="Failed to sign up user"
         )
         
-    return {
-        "status_code": 200,
-        "detail": f"Sign up {form_data.username} successfully."
-    }
+    return {"message": "User created successfully", "username": form_data.username}
 
