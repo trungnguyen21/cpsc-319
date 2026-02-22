@@ -6,12 +6,23 @@ import LoginAppBar from "../components/login_appbar";
 
 // MUI text field: https://mui.com/material-ui/react-text-field/
 export function Login() {
-    const [email, setEmail] = useState('')
+    const [user, setUser] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
     //const [showPassword, setShowPass] = useState(false)
     const navigate = useNavigate();
 
-    // TODO: handle login 
+    const valid_username = 'benevity_user'
+    const valid_password = 'alpine' 
+
+    const handleLogin = (e: React.SyntheticEvent) => {
+        e.preventDefault()
+        if (user === valid_username && password === valid_password) {
+            navigate("/home")
+        } else {
+            setError("Invalid credentials.")
+        }
+    }
     
     return (
     <>
@@ -23,7 +34,8 @@ export function Login() {
                 alignItems:'center',
                 bgcolor: 'F5F5F5',
                 flexDirection:'column',
-                gap: 1.5
+                gap: 1.5,
+                mt: 15
             }}
         >
             <Box
@@ -50,20 +62,28 @@ export function Login() {
                 <p style={{ margin: 0}}>Sign In</p>
 
                 <Box
-                    component="form"
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1.5
                     }}
-                    noValidate
-                    autoComplete="off"
                 >
-                    <TextField id="standard-basic" label="Username*" variant="standard"/>
-                    <TextField id="standard-basic" label="Password*" variant="standard"/>
+                    <TextField 
+                        id="username" 
+                        label="Username*" 
+                        variant="standard"
+                        value={user}
+                        onChange={(e) => setUser(e.target.value)}
+                    />
+                    <TextField 
+                        id="password" 
+                        label="Password*" 
+                        variant="standard"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                 </Box>
-
-                {/* TODO: submit button */}
                 
                 <Button 
                     sx={{ 
@@ -72,7 +92,7 @@ export function Login() {
                         width: 190
                     }}
                     variant="contained"
-                    onClick={() => navigate("/home")}
+                    onClick={handleLogin}
                 >
                     Sign In
                 </Button>
