@@ -1,5 +1,6 @@
-import { Box, Chip, Toolbar, Typography } from "@mui/material";
+import { Box, Chip, Grid, Stack, Toolbar, Typography } from "@mui/material";
 import HomeAppBar from "../components/appbar";
+import OrgCard from "../components/org_cards";
 
 export function Home() {
     const dummyData = [
@@ -7,6 +8,9 @@ export function Home() {
         {id:"2", name: "SickKids Foundation"},
         {id:"3", name: "World Vision Canada"},
         {id:"4", name: "The Terry Fox Foundation"},
+        {id:"5", name: "BC Children's Hospital"},
+        {id:"6", name: "Canadian Cancer Society"},
+        {id:"7", name: "Alzheimer Society Canada"}
     ]
     return (
         <>
@@ -61,7 +65,18 @@ export function Home() {
         </Box>
 
         <Box>
-            
+            <Grid 
+                container spacing={4}
+                sx={{
+                    mt: 5
+                }}
+            >
+                {dummyData.map((org) => (
+                    <Grid key={org.id}>
+                        <OrgCard name={org.name} />
+                    </Grid>
+                ))}
+            </Grid>
         </Box>
         </>
     )
