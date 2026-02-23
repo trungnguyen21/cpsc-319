@@ -6,12 +6,13 @@ Generates a 2-paragraph donor-facing "Impact Story" for a given nonprofit using 
 
 ## Relevant Files
 
-| File                              | Purpose                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| `ai_service.py`                   | Agent definitions, ADK wiring, pipeline runner (`generate_impact_story`) |
-| `prompts.py`                      | All agent instruction prompts                                            |
-| `../../tests/test_ai_pipeline.py` | CLI test - runs the full pipeline end to end                             |
-| `../../.env`                      | GCP credentials and config (see Quick Start below)                       |
+| File                              | Purpose                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| `ai_service.py`                   | Agent definitions, ADK wiring, pipeline runner (`generate_impact_story`)    |
+| `prompts.py`                      | All agent instruction prompts — edit here to tune agent behaviour           |
+| `../routers/stories.py`           | FastAPI endpoint `POST /stories/generation` — calls `generate_impact_story` |
+| `../../tests/test_ai_pipeline.py` | CLI test - runs the full pipeline end to end                                |
+| `../../.env`                      | GCP credentials and config (see Quick Start below)                          |
 
 ---
 
