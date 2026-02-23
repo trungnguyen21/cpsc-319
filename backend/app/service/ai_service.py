@@ -81,6 +81,7 @@ if _use_vertexai == "TRUE":
 _APP_NAME = "benevity_mas"
 _MAX_REWRITES = 2   # Synthesis can be asked to rewrite at most 2 times
 
+
 def search_annual_reports(nonprofit_name: str, query: str) -> str:
     """
     USE THIS TOOL FIRST
@@ -95,6 +96,7 @@ def search_annual_reports(nonprofit_name: str, query: str) -> str:
     location = os.environ.get("DATA_STORE_LOCATION", "global")
     data_store_id = os.environ.get("DATA_STORE_ID")
 
+    # debug
     print(f"\n[DIAGNOSTICS] ----------------------------------")
     print(f"Project ID    : {project_id}")
     print(f"Location      : {location}")
@@ -134,13 +136,13 @@ def search_annual_reports(nonprofit_name: str, query: str) -> str:
                 context += f"[Annual Report]: {result.chunk.content}\n"
 
         if context:
-            print(f"[RAG SUCCESS] 📄 Retrieved {len(response.results)} chunks from the database!")
+            print(f"[RAG SUCCESS] Retrieved {len(response.results)} chunks from the database!")
             print(f"[RAG PREVIEW] {context[:150]}...\n")
         else:
-            print("[RAG WARNING] ⚠️ Database returned 0 results. Check if PDFs are indexed properly.\n")
+            print("[RAG WARNING] Database returned 0 results. Check if PDFs are indexed properly.\n")
         return context if context else "No annual report data found."
     except Exception as e:
-        print(f"\n[RAG ERROR] ❌ Google Cloud failed: {e}\n")
+        print(f"\n[RAG ERROR] Google Cloud failed: {e}\n")
         return f"Database error: {e}"
 
 
@@ -195,7 +197,7 @@ internal_data_agent = Agent(
 
 # =========================================================================== #
 #  Agent 1 — Research Agent                                                    #
-#  Model  : Gemini 1.5 Flash (fast, cost-efficient for search-heavy work)      #
+#  Model  : Gemini 2.0 Flash                                                   #
 #  Tools  : google_search (grounded retrieval)                                 #
 # =========================================================================== #
 
@@ -262,7 +264,7 @@ research_agent = Agent(
 
 # =========================================================================== #
 #  Agent 2 — Synthesis Agent                                                   #
-#  Model  : Gemini 1.5 Pro (quality narrative writing)                         #
+#  Model  : Gemini 2.0 flash                                                    #
 #  Tools  : NONE — intentionally sandboxed to research data only               #
 # =========================================================================== #
 
@@ -305,7 +307,7 @@ synthesis_agent = Agent(
 
 # =========================================================================== #
 #  Agent 3 — Validation Agent                                                  #
-#  Model  : Gemini 1.5 Pro                                                     #
+#  Model  : Gemini 2.0 Flash                                                    #
 #  Tools  : NONE — performs analytical reasoning only                          #
 #  output_schema enforces structured JSON output (controlled generation)       #
 # =========================================================================== #
@@ -348,7 +350,7 @@ validation_agent = Agent(
 
 # =========================================================================== #
 #  Agent 4 — Orchestrator                                                      #
-#  Model  : Gemini 1.5 Pro                                                     #
+#  Model  : Gemini 2.0 Flash                                                    #
 #  Tools  : AgentTool wrappers for the three sub-agents above                  #
 # =========================================================================== #
 
