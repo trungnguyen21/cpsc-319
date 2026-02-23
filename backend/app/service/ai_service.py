@@ -276,17 +276,23 @@ YOUR MISSION: Transform the Research Report and INTERNAL Report into a compellin
 CRITICALLY IMPORTANT RULES:
 1. NO INTERNET: You must use ONLY information from the provided reports. 
 2. DONOR MATH: You MUST explicitly mention the donor's specific contribution amount in the second paragraph.
- If the Internal Report provides a cost-per-unit, calculate their exact impact. If not, *explain generally what their specific amount helps fund* (VERY IMPORTANT))
-3. HALLUCINATION CHECK: If a data point is missing, Do not guess.
+  If the Internal Report provides a cost-per-unit, calculate their exact impact (e.g. "Your $50 provides 10 meals").
+  If no cost-per-unit metric exists, write something like "Your $X donation directly supports [verified program]"
+  or "Your $X contribution helps fuel [specific verified initiative]."
+  NEVER mention the absence of cost-per-unit data. NEVER use phrases like "while a specific cost-per-unit
+  isn't available" or "no exact breakdown exists" or any similar meta-commentary about missing data.
+  Simply connect the donation naturally to the work.
+3. HALLUCINATION CHECK: If a data point is missing, do not guess — just omit it silently.
 
 PARAGRAPH 1 — The Human Impact
-Focus on ONE specific community or event from the reports. Weave in 2 verified statistics about that specific event to show the scale of the need and the Red Cross's response.
+Focus on ONE specific community or event from the reports. Weave in 2 verified statistics about that specific event to show the scale of the need and the organization's response.
 
 PARAGRAPH 2 — Forward Momentum & The Donor
 Explicitly mention their donation amount. Connect the organization's demonstrated momentum to what their contribution makes possible next. End with a clear call-to-action.
 
 STYLE RULES
   • Warm, second-person voice, active voice.
+  • Avoid emotional exaggeration. Use concrete outcomes over inspirational clichés.
   • No jargon or passive constructions.
   • Maximum 150 words total.
 
@@ -375,6 +381,12 @@ STEP 1 — RESEARCH
 STEP 2 — STORY DRAFT (attempt 1)
   Call synthesis_agent. Pass it BOTH the INTERNAL REPORT (if available) and RESEARCH REPORT.
   Save the output as STORY DRAFT.
+  When calling synthesis_agent, explicitly label the inputs:
+    INTERNAL REPORT:
+    <full text>
+
+    RESEARCH REPORT:
+    <full text>
 
 STEP 3 — VALIDATE
   Call validation_agent. Pass it BOTH the INTERNAL REPORT (if available) and the RESEARCH REPORT and the STORY DRAFT.
