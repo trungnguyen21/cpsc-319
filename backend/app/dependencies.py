@@ -91,9 +91,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth_scheme)], db: Ann
             raise credentials_exception
         token_data = TokenData(username=username)
     except InvalidTokenError:
+        logger.debug("Invalid credentials!!")
         raise credentials_exception
     
-    user = get_user(db, username=token_data.username)
+    user = await get_user(db, username=token_data.username)
     if user is None:
+        logger.debug("No credentials were found")
         raise credentials_exception
     return user

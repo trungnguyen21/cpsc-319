@@ -7,8 +7,21 @@ requires-python = ">=3.10"
 dependencies = [
     "asyncpg>=0.31.0",
     "fastapi[standard]>=0.128.5",
+    "google-adk>=0.4.0",
     "pgsql>=2.0",
     "pwdlib[argon2]>=0.3.0",
     "pyjwt>=2.11.0",
+    "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
+]
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = ["tests"]           # Where to look for tests
+python_files = ["test_*.py"]    # Test file patterns
+python_classes = ["Test*"]      # Test class patterns
+python_functions = ["test_*"]   # Test function patterns
+addopts = [
+    "--verbose",                # More detailed output
+    "--strict-markers",         # Fail on unknown markers
+    "-ra",                      # Show summary of all test outcomes
 ]

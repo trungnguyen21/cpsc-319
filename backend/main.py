@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from app.models import User
 from app.dependencies import get_current_user
-from app.routers import auth
+from app.routers import auth, dashboard, stories
 from app.config import POSTGRES_URI
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
+app.include_router(dashboard.router)
+app.include_router(stories.router)
 
 @app.get("/")
 async def helloworld():
