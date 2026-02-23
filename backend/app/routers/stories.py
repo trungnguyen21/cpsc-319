@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from ..dependencies import get_current_user
+from ..service.ai_service import generate_impact_story
 
 TOKEN_TTL = 60
 
-class StoryGeneraionRequest(BaseModel):
+class StoryGenerationRequest(BaseModel):
     orgID: str
     user_prompt: str
 
@@ -28,8 +29,42 @@ async def get_stories():
     return "list of stories here"
 
 @router.post("/generation")
-async def search_org(request: StoryGeneraionRequest):
-    return f"Generate story for {request.orgID}"
+async def generate_story(request: StoryGenerationRequest):
+    """
+    Triggers the full Multi-Agent-System pipeline via generate_impact_story():
+
+    Input (StoryGenerationRequest):
+        orgID       → passed as org_id       (nonprofit/organization name)
+        user_prompt → passed as user_prompt  (additional donor/context info)
+
+    Pipeline:
+      1. Internal Data Agent  (RAG over annual report PDFs)
+      2. Research Agent       (Google Search, last 12 months only)
+      3. Synthesis Agent      (writes the 2-paragraph donor story)
+      4. Validation Agent     (fact-checks + writing audit → APPROVED/REJECTED)
+         ↑ Orchestrator retries Synthesis up to 2 times on REJECTED.
+
+    Response:
+      {
+        "status"        : "APPROVED" | "REJECTED",
+        "story"         : "<2-paragraph impact story>",
+        "factual_errors": [],
+        "writing_issues": [],
+        "facts_summary" : "<verified metrics used>",
+        "org_id"        : "<echoed back>"
+      }
+    """
+    try:
+        result = await generate_impact_story(
+            org_id=request.orgID,
+            user_prompt=request.user_prompt,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
+    return result
 
 @router.get("/{storyID}")
 async def get_story_detail(storyID: str):

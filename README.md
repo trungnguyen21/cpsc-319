@@ -18,6 +18,23 @@ Command to run the backend server:
 - `cd frontend`
 - `npm run start`
 
+
+## Ai
+- Run `pip install -r requirements.txt`
+- Add to .env 
+```
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
+GCP_PROJECT_ID=projectID
+GCP_LOCATION=us-central1
+DATA_STORE_ID=DATAID
+DATA_STORE_LOCATION=global
+```
+To demo pipeline:
+```
+- cd backend
+- python -m app.service.ai_service
+```
+
 ## Instruction for frontend:
 - Call /auth/token with username/password
 - Receive access_token
