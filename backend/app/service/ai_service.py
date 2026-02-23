@@ -276,15 +276,30 @@ def _extract_json(text: str) -> str:
     Even when instructed to return only JSON, LLMs sometimes wrap it in
     markdown code fences, add prose before/after, use invalid escape sequences,
     or nest it inside an extra wrapper key. This function strips all of that.
+
+    Note: uses brace-counting (not a greedy regex) to extract the first complete
+    JSON object — this prevents spanning across multiple JSON blocks when the
+    orchestrator accidentally outputs the JSON more than once.
     """
     # 1. Strip markdown code fences
     text = re.sub(r"```(?:json)?\s*", "", text).strip()
 
-    # 2. Extract the outermost {...} block
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
+    # 2. Extract the first complete {...} block using brace-counting.
+    #    A greedy regex like \{.*\} with DOTALL would span across multiple
+    #    JSON objects if the orchestrator repeats its output, causing parse errors.
+    start = text.find("{")
+    if start == -1:
         return text
-    json_str = match.group(0)
+    depth = 0
+    json_str = text
+    for i, ch in enumerate(text[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                json_str = text[start : i + 1]
+                break
 
     # 3. Fix invalid \' escape sequences (not valid JSON — single quotes don't need escaping)
     json_str = re.sub(r"\\'", "'", json_str)
