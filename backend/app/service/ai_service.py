@@ -58,6 +58,7 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.tools import google_search
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
+from google.cloud import discoveryengine_v1alpha as discoveryengine
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,69 @@ if _use_vertexai == "TRUE":
 
 _APP_NAME = "benevity_mas"
 _MAX_REWRITES = 2   # Synthesis can be asked to rewrite at most 2 times
+
+def search_annual_reports(nonprofit_name: str, query: str) -> str:
+    """
+    USE THIS TOOL FIRST
+    Searches official nonprofit Annual Reports (PDFs)
+    Use this to find verified financial metrics, cost-per-unit, and historical beneficiary
+    counts before general web search for recent momentum.
+    """
+
+    print(f"\n[RAG TOOL] Searching Agent Builder: '{nonprofit_name} {query}'")
+
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    location = os.environ.get("DATA_STORE_LOCATION", "global")
+    data_store_id = os.environ.get("DATA_STORE_ID")
+
+    print(f"\n[DIAGNOSTICS] ----------------------------------")
+    print(f"Project ID    : {project_id}")
+    print(f"Location      : {location}")
+    print(f"Data Store ID : {data_store_id}")
+    print(f"Query         : {nonprofit_name} {query}")
+
+    if not data_store_id:
+        print("ERROR: DATA_STORE_ID is missing from environment variables!")
+        print(f"------------------------------------------------\n")
+        return "ERROR: DATA_STORE_ID is missing from environment variables."
+
+    try:
+        client = discoveryengine.SearchServiceClient()
+        serving_config = client.serving_config_path(
+            project=project_id,
+            location=location,
+            data_store=data_store_id,
+            serving_config="default_search"
+        )
+        request = discoveryengine.SearchRequest(
+            serving_config=serving_config,
+            query=f"{nonprofit_name} {query}",
+            page_size=3,
+            content_search_spec=discoveryengine.SearchRequest.ContentSearchSpec(
+                search_result_mode=discoveryengine.SearchRequest.ContentSearchSpec.SearchResultMode.CHUNKS,
+                chunk_spec=discoveryengine.SearchRequest.ContentSearchSpec.ChunkSpec(
+                    num_previous_chunks=1,
+                    num_next_chunks=1,
+                ),
+            ),
+        )
+        response = client.search(request)  # GCP call
+
+        context = ""
+        for i, result in enumerate(response.results):
+            if result.chunk and result.chunk.content:
+                context += f"[Annual Report]: {result.chunk.content}\n"
+
+        if context:
+            print(f"[RAG SUCCESS] 📄 Retrieved {len(response.results)} chunks from the database!")
+            print(f"[RAG PREVIEW] {context[:150]}...\n")
+        else:
+            print("[RAG WARNING] ⚠️ Database returned 0 results. Check if PDFs are indexed properly.\n")
+        return context if context else "No annual report data found."
+    except Exception as e:
+        print(f"\n[RAG ERROR] ❌ Google Cloud failed: {e}\n")
+        return f"Database error: {e}"
+
 
 
 # =========================================================================== #
@@ -104,6 +168,30 @@ class ValidationOutput(BaseModel):
     writing_issues: list[str] = Field(default_factory=list)
     facts_summary: str = Field(default="")
 
+# =========================================================================== #
+#  Agent 1A — Internal Data Agent (RAG)                                        #
+#  Model  : Gemini 2.0 Flash                                                   #
+#  Tools  : search_annual_reports (Custom GCP Agent Builder Tool)              #
+# =========================================================================== #
+_INTERNAL_DATA_INSTRUCTION = """\
+You are an internal financial analyst for Benevity.
+YOUR MISSION: Use the `search_annual_reports` tool to extract verified financial 
+metrics, cost-per-unit impact (e.g., "$10 provides a meal"), and historical 
+beneficiary counts for the requested nonprofit.
+
+Return a structured INTERNAL REPORT containing:
+- Specific dollar-to-impact ratios (if found)
+- Verified historical metrics
+- If no data is found, state: "No internal annual report data available."
+"""
+
+internal_data_agent = Agent(
+    name="internal_data_agent",
+    model="gemini-2.0-flash-001",
+    description="Searches the internal Agent Builder database for official Annual Reports and financial metrics.",
+    instruction=_INTERNAL_DATA_INSTRUCTION,
+    tools=[search_annual_reports],
+)
 
 # =========================================================================== #
 #  Agent 1 — Research Agent                                                    #
@@ -179,35 +267,26 @@ research_agent = Agent(
 # =========================================================================== #
 
 _SYNTHESIS_INSTRUCTION = """\
-You are an award-winning nonprofit copywriter for Benevity whose work inspires
-corporate donors to give.
+You are an award-winning nonprofit copywriter for Benevity whose work inspires corporate donors.
 
-═══ YOUR MISSION ═══════════════════════════════════════════════════════════════
-Transform the Research Report you have been given into a donor-facing
-"Impact Story" — a compelling 2-paragraph narrative.
+YOUR MISSION: Transform the Research Report and INTERNAL Report into a compelling, highly cohesive 2-paragraph "Impact Story".
 
-CRITICALLY IMPORTANT: You must use ONLY information that appears in the
-Research Report. You have no access to the internet. Do not introduce any
-statistic, program name, dollar amount, or claim that cannot be found verbatim
-in the Research Report.  If a data point you need is missing, write
-[DATA NOT AVAILABLE] in its place — do not guess or make it up.
+CRITICALLY IMPORTANT RULES:
+1. NO INTERNET: You must use ONLY information from the provided reports. 
+2. BE COHESIVE: Do NOT just list disjointed facts from different provinces or events. Pick ONE specific event, campaign, or region from the reports (e.g., focus entirely on the Jasper wildfires) to build a focused, emotional narrative.
+3. DONOR MATH: You MUST explicitly mention the donor's specific contribution amount (e.g., "$250") in the second paragraph. If the Internal Report provides a cost-per-unit, calculate their exact impact. If not, explain generally what their specific amount helps fund.
+4. HALLUCINATION CHECK: If a data point is missing, write [DATA NOT AVAILABLE]. Do not guess.
 
-PARAGRAPH 1 — Human Impact
-Open with the people or communities served. Weave in 2–3 specific, verified
-statistics from the Research Report to anchor the emotion in real outcomes.
+PARAGRAPH 1 — The Human Impact
+Focus on ONE specific community or event from the reports. Weave in 2 verified statistics about that specific event to show the scale of the need and the Red Cross's response.
 
-PARAGRAPH 2 — Forward Momentum
-Connect the organization's demonstrated momentum to what the donor's
-contribution makes possible next. End with one clear, memorable call-to-action.
+PARAGRAPH 2 — Forward Momentum & The Donor
+Explicitly mention their donation amount. Connect the organization's demonstrated momentum to what their contribution makes possible next. End with a clear call-to-action.
 
 STYLE RULES
-  • Warm, second-person voice ("your support…"), active voice.
-  • No jargon, acronyms, or passive constructions.
-  • Plain language — avoid complex or technical vocabulary.
+  • Warm, second-person voice ("your $250 support…"), active voice.
+  • No jargon or passive constructions.
   • Maximum 150 words total.
-
-If you receive a rewrite request, you will also be given a list of errors from
-the reviewer. Address every error explicitly in your revised story.
 
 OUTPUT: Return the story text ONLY — no headers, labels, or commentary.
 """
@@ -232,51 +311,25 @@ synthesis_agent = Agent(
 # =========================================================================== #
 
 _VALIDATION_INSTRUCTION = """\
-You are an elite fact-checker and senior editor for Benevity's content pipeline.
-You are the final gatekeeper before any story reaches a donor.
+You are an elite fact-checker for Benevity. You evaluate the STORY DRAFT against the INTERNAL REPORT and Research REPORT.
 
-Your inputs (both available to you in this conversation):
-  [RESEARCH REPORT] — the verified raw data from the Research Agent.
-  [STORY DRAFT]     — the narrative written by the Synthesis Agent.
-
-═══ YOUR 3-PASS VALIDATION PROTOCOL ════════════════════════════════════════
-
-PASS 1 — FACTUAL ACCURACY (compare story against research report)
-  Read every sentence of the story. Extract each factual claim:
-  numbers, percentages, program names, geographic scope, beneficiary counts,
-  dollar figures, dates, outcomes.
-
-  For each claim, look it up in the Research Report:
-    SUPPORTED     → The Research Report contains this exact figure with a source.
-    UNSUPPORTED   → Not found in the Research Report, contradicted, or
-                    extrapolated beyond what is stated.
-    PLACEHOLDER   → The story contains a [DATA NOT AVAILABLE] marker.
-
+PASS 1 — FACTUAL ACCURACY
+  Extract each factual claim in the story.
+  For each claim, look it up in either the Internal or Research Report.
   Any UNSUPPORTED claim → REJECTED.
-  Any PLACEHOLDER remaining → REJECTED (means research data was insufficient
-  for a full story — do not approve incomplete stories).
 
-PASS 2 — WRITING QUALITY (read as the target audience: a corporate HR manager)
-  Flag any of the following:
-    • Grammatical errors or awkward sentence structure.
-    • Jargon, acronyms, or technical language a general reader wouldn't know.
-    • Overly complex vocabulary (if a simpler word exists, flag it).
-    • Passive voice constructions.
-    • Story exceeds 150 words.
-
+PASS 2 — WRITING QUALITY
+  Flag grammar errors, passive voice, or stories exceeding 150 words.
   Writing issues alone → REJECTED.
 
 PASS 3 — VERDICT
   APPROVED : ALL claims are SUPPORTED and NO writing issues found.
   REJECTED : Any UNSUPPORTED claim OR any writing issue.
 
-═══ CRITICAL RULES ══════════════════════════════════════════════════════════
-  • Return ONLY the JSON object — no text before or after it.
-  • "factual_errors" lists every UNSUPPORTED claim (empty list if none).
-  • "writing_issues" lists every writing problem found (empty list if none).
-  • Do NOT alter the story text in the "story" field — copy it verbatim.
-  • Be ruthlessly strict. A compelling story with even one unverified
-    statistic or one grammar error must be REJECTED.
+CRITICAL RULES:
+  • Return ONLY the JSON object.
+  • "factual_errors" lists every UNSUPPORTED claim.
+  • "writing_issues" lists every writing problem.
   • "facts_summary" is one sentence listing the key verified metrics you used.
 """
 
@@ -305,6 +358,7 @@ Your job is to coordinate three specialist agents in the correct order and
 manage a validation-retry loop.
 
 YOU HAVE ACCESS TO THREE TOOLS:
+  internal_data_agent — searches the database for official Annual Reports and financial metrics
   research_agent    — searches for verified nonprofit impact data
   synthesis_agent   — writes the donor story from research data only
   validation_agent  — fact-checks and edits the story; returns JSON verdict
@@ -312,23 +366,23 @@ YOU HAVE ACCESS TO THREE TOOLS:
 ═══ WORKFLOW (follow this EXACTLY) ══════════════════════════════════════════
 
 STEP 1 — RESEARCH
-  Call research_agent with the nonprofit name, today's date ({_TODAY}),
-  and the user's prompt.
+  a. Call internal_data_agent with the nonprofit name to get financial metrics. Save as INTERNAL REPORT.
+  b. Call research_agent with the nonprofit name, today's date ({_TODAY}), and the user's prompt.
   Save the full output as the RESEARCH REPORT.
 
 STEP 2 — STORY DRAFT (attempt 1)
-  Call synthesis_agent. Pass it the entire RESEARCH REPORT.
+  Call synthesis_agent. Pass it BOTH the INTERNAL REPORT (if available) and RESEARCH REPORT.
   Save the output as STORY DRAFT.
 
 STEP 3 — VALIDATE
-  Call validation_agent. Pass it BOTH the RESEARCH REPORT and the STORY DRAFT.
+  Call validation_agent. Pass it BOTH the INTERNAL REPORT (if available) and the RESEARCH REPORT and the STORY DRAFT.
   Save the full JSON response.
 
 STEP 4 — RETRY LOOP (if needed)
   If the JSON status is "REJECTED" AND you have made fewer than {_MAX_REWRITES}
   rewrite attempts so far:
     a. Call synthesis_agent again. Pass it:
-         - The full RESEARCH REPORT
+         - The full RESEARCH REPORT and INTERNAL REPORT (if available)
          - The rejected STORY DRAFT
          - The factual_errors list from the validation JSON
          - The writing_issues list from the validation JSON
@@ -356,6 +410,7 @@ orchestrator = Agent(
     description="Orchestrates Research → Synthesis → Validation with retry loop.",
     instruction=_ORCHESTRATOR_INSTRUCTION,
     tools=[
+        AgentTool(agent=internal_data_agent),
         AgentTool(agent=research_agent),
         AgentTool(agent=synthesis_agent),
         AgentTool(agent=validation_agent),
@@ -385,7 +440,6 @@ def _extract_json(text: str) -> str:
     json_str = match.group(0)
 
     # 3. Fix invalid \' escape sequences (not valid JSON — single quotes don't need escaping)
-
     json_str = re.sub(r"\\'", "'", json_str)
 
     # 4. Unwrap nested wrapper key if the orchestrator added one
@@ -524,13 +578,12 @@ async def generate_impact_story(org_id: str, user_prompt: str) -> dict[str, Any]
 async def _main() -> None:
     import textwrap
 
-    test_org    = "American Red Cross"
+    test_org    = "Canadian Red Cross"
     test_prompt = (
-        "A donor recently contributed to the American Red Cross and wants to know "
-        "the real-world impact of their generosity. Focus on the March 2025 Myanmar "
-        "earthquake response — relief efforts, number of people helped, shelters "
-        "provided, funds raised, and aid delivered. The story should close the "
-        "feedback loop for the donor and inspire continued giving."
+        "A donor from Vancouver recently contributed $100 to the Canadian Red Cross. "
+        "Focus specifically on recent disaster relief efforts in Western Canada or "
+        "British Columbia (like the recent wildfires). Combine verified financial metrics "
+        "from their annual reports with recent news to close the feedback loop for the donor."
     )
 
     bar = "=" * 67
