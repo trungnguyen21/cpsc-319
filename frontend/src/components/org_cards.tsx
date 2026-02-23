@@ -33,7 +33,10 @@ export default function OrgCard ({ name }: {name: string}) {
             <CardActions>
                 <Button
                     sx={{
-                        mb: 0
+                        mb: 0,
+                        backgroundColor: '#D1315E',
+                        color:'#FFFFFF',
+                        fontWeight: 'bold'
                     }}
                     onClick={handleSelect}
                 >
