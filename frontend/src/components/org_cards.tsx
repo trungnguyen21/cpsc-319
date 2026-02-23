@@ -1,6 +1,13 @@
 import { Button, Card, CardActions, CardContent, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export default function OrgCard ({ name }: {name: string}) {
+    const navigate = useNavigate();
+
+    function handleSelect() {
+        navigate(`/org/${encodeURIComponent(name)}`);
+    }
+
     return (
         <Card
             sx={{
@@ -28,6 +35,7 @@ export default function OrgCard ({ name }: {name: string}) {
                     sx={{
                         mb: 0
                     }}
+                    onClick={handleSelect}
                 >
                     Select
                 </Button>

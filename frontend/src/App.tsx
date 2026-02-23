@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate,  } from 'react-router
 import './App.css'
 import { Login } from "./pages/login"
 import { Home } from "./pages/home"
+import { OrgImpacts } from "./pages/org_impacts"
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/org/:orgName" element={<OrgImpacts />} />
         <Route path="*" element={<Navigate to="/" replace/>} />
       </Routes>
     </Router>
