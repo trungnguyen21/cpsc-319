@@ -32,9 +32,9 @@ async def get_stories():
 async def generate_story(request: StoryGeneraionRequest):
     """
     Triggers the full MAS pipeline:
-      1. Research Agent  (Gemini 1.5 Flash + Google Search)
-      2. Synthesis Agent (Gemini 1.5 Pro, sandboxed to research data only)
-      3. Validation Agent (Gemini 1.5 Pro, fact-check + grammar audit)
+      1. Research Agent  
+      2. Synthesis Agent 
+      3. Validation Agent 
          ↑ Orchestrator retries Synthesis up to 2 times on REJECTED.
 
     Response:
