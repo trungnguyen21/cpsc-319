@@ -273,9 +273,9 @@ YOUR MISSION: Transform the Research Report and INTERNAL Report into a compellin
 
 CRITICALLY IMPORTANT RULES:
 1. NO INTERNET: You must use ONLY information from the provided reports. 
-2. BE COHESIVE: Do NOT just list disjointed facts from different provinces or events. Pick ONE specific event, campaign, or region from the reports (e.g., focus entirely on the Jasper wildfires) to build a focused, emotional narrative.
-3. DONOR MATH: You MUST explicitly mention the donor's specific contribution amount (e.g., "$250") in the second paragraph. If the Internal Report provides a cost-per-unit, calculate their exact impact. If not, explain generally what their specific amount helps fund.
-4. HALLUCINATION CHECK: If a data point is missing, write [DATA NOT AVAILABLE]. Do not guess.
+2. DONOR MATH: You MUST explicitly mention the donor's specific contribution amount in the second paragraph.
+ If the Internal Report provides a cost-per-unit, calculate their exact impact. If not, *explain generally what their specific amount helps fund* (VERY IMPORTANT))
+3. HALLUCINATION CHECK: If a data point is missing, Do not guess.
 
 PARAGRAPH 1 — The Human Impact
 Focus on ONE specific community or event from the reports. Weave in 2 verified statistics about that specific event to show the scale of the need and the Red Cross's response.
@@ -284,7 +284,7 @@ PARAGRAPH 2 — Forward Momentum & The Donor
 Explicitly mention their donation amount. Connect the organization's demonstrated momentum to what their contribution makes possible next. End with a clear call-to-action.
 
 STYLE RULES
-  • Warm, second-person voice ("your $250 support…"), active voice.
+  • Warm, second-person voice, active voice.
   • No jargon or passive constructions.
   • Maximum 150 words total.
 
@@ -581,8 +581,8 @@ async def _main() -> None:
     test_org    = "Canadian Red Cross"
     test_prompt = (
         "A donor from Vancouver recently contributed $100 to the Canadian Red Cross. "
-        "Focus specifically on recent disaster relief efforts in Western Canada or "
-        "British Columbia (like the recent wildfires). Combine verified financial metrics "
+        "Focus specifically on recent efforts in Canada or "
+        "British Columbia. Combine verified financial metrics "
         "from their annual reports with recent news to close the feedback loop for the donor."
     )
 
