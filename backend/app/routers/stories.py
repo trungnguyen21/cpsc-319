@@ -6,7 +6,7 @@ from ..service.ai_service import generate_impact_story
 
 TOKEN_TTL = 60
 
-class StoryGeneraionRequest(BaseModel):
+class StoryGenerationRequest(BaseModel):
     orgID: str
     user_prompt: str
 
@@ -29,12 +29,19 @@ async def get_stories():
     return "list of stories here"
 
 @router.post("/generation")
-async def generate_story(request: StoryGeneraionRequest):
+async def generate_story(request: StoryGenerationRequest):
     """
-    Triggers the full MAS pipeline:
-      1. Research Agent  
-      2. Synthesis Agent 
-      3. Validation Agent 
+    Triggers the full Multi-Agent-System pipeline via generate_impact_story():
+
+    Input (StoryGenerationRequest):
+        orgID       → passed as org_id       (nonprofit/organization name)
+        user_prompt → passed as user_prompt  (additional donor/context info)
+
+    Pipeline:
+      1. Internal Data Agent  (RAG over annual report PDFs)
+      2. Research Agent       (Google Search, last 12 months only)
+      3. Synthesis Agent      (writes the 2-paragraph donor story)
+      4. Validation Agent     (fact-checks + writing audit → APPROVED/REJECTED)
          ↑ Orchestrator retries Synthesis up to 2 times on REJECTED.
 
     Response:
