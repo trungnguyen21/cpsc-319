@@ -20,7 +20,7 @@ router = APIRouter(
     tags=["stories"],
     prefix="/stories",
     responses={404: {"description": "Not found"}},
-    dependencies=[Depends(get_current_user)]
+    # dependencies=[Depends(get_current_user)]
 )
 
 @router.get("/")

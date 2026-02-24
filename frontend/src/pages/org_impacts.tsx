@@ -1,15 +1,45 @@
 import { useState } from "react";
-import { Box, Button, Typography, Toolbar } from "@mui/material";
+import { Box, Button, Typography, Toolbar, CircularProgress, Alert } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
+import { API_BASE_URL } from "../config";
 
 export function OrgImpacts() {
     const { orgName } = useParams<{ orgName: string }>();
     const navigate = useNavigate();
     const [storyGenerated, setStoryGenerated] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [storyContent, setStoryContent] = useState<string>("");
 
-    function handleGenerateStory() {
-        setStoryGenerated(true);
+    async function handleGenerateStory() {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/stories/generation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    orgID: orgName,
+                    user_prompt: ""
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to generate story: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            setStoryContent(result.story);
+            setStoryGenerated(true);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -57,7 +87,7 @@ export function OrgImpacts() {
             <Button
                 variant="contained"
                 onClick={handleGenerateStory}
-                disabled={storyGenerated}
+                disabled={storyGenerated || loading}
                 sx={{
                     fontWeight: "bold",
                     backgroundColor: "#D1315E",
@@ -66,24 +96,38 @@ export function OrgImpacts() {
                     alignSelf: "flex-start"
                 }}
             >
-                Generate New Impact Story
+                {loading ? (
+                    <>
+                        <CircularProgress size={20} sx={{ color: "#FFFFFF", mr: 1 }} />
+                        Generating...
+                    </>
+                ) : (
+                    "Generate New Impact Story"
+                )}
             </Button>
 
-            {storyGenerated && (
+            {error && (
+                <Alert severity="error" sx={{ width: "90%" }}>
+                    {error}
+                </Alert>
+            )}
+
+            {storyGenerated && storyContent && (
                 <Box
                     sx={{
                         width: "90%",
                         p: 3,
-                        border: "1px dashed #999",
+                        border: "1px solid #999",
                         borderRadius: 1,
-                        minHeight: 120
+                        minHeight: 120,
+                        backgroundColor: "#f9f9f9"
                     }}
                     >
                     <Typography 
                         variant="body1"
-                        color="text.secondary"
+                        sx={{ whiteSpace: "pre-line" }}
                     >
-                        This is an impact story placeholder.
+                        {storyContent}
                     </Typography>
                 </Box>
             )}
