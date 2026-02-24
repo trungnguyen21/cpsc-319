@@ -17,6 +17,12 @@ export function OrgImpacts() {
         setError(null);
         
         try {
+            const prompt = [
+                `A donor from Vancouver recently contributed $100 to ${orgName}.`,
+                "Focus specifically on recent efforts in Canada.",
+                "Combine verified financial metrics from their annual reports with recent news to close the feedback loop for the donor."
+            ].join(" ");
+
             const response = await fetch(`${API_BASE_URL}/stories/generation`, {
                 method: 'POST',
                 headers: {
@@ -24,7 +30,7 @@ export function OrgImpacts() {
                 },
                 body: JSON.stringify({
                     orgID: orgName,
-                    user_prompt: ""
+                    user_prompt: prompt
                 })
             });
             
@@ -120,7 +126,8 @@ export function OrgImpacts() {
                         border: "1px solid #999",
                         borderRadius: 1,
                         minHeight: 120,
-                        backgroundColor: "#f9f9f9"
+                        backgroundColor: "#f9f9f9", 
+                        color: "#000"
                     }}
                     >
                     <Typography 
