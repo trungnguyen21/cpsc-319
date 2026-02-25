@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Typography, Toolbar, CircularProgress, Alert, TextField } from "@mui/material";
+import { Box, Button, Typography, Toolbar, CircularProgress, Alert } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
 import { API_BASE_URL } from "../config";
@@ -8,11 +8,10 @@ export function OrgImpacts() {
     const { orgName } = useParams<{ orgName: string }>();
     const navigate = useNavigate();
     const [storyGenerated, setStoryGenerated] = useState(false);
+    const [storyContent, setStoryContent] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [storyContent, setStoryContent] = useState<string>("");
-    const [editing, setEditing] = useState(false);
-    const [editedContent, setEditedContent] = useState<string>("");
+    const orgNameURI = orgName!;
 
     async function handleGenerateStory() {
         setLoading(true);
@@ -42,8 +41,9 @@ export function OrgImpacts() {
             
             const result = await response.json();
             setStoryContent(result.story);
-            setEditedContent(result.story);
+            //setEditedContent(result.story);
             setStoryGenerated(true);
+            navigate(`/org/${encodeURIComponent(orgNameURI)}/story`, { state: { storyContent: result.story } });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error occurred');
         } finally {
@@ -120,87 +120,7 @@ export function OrgImpacts() {
                     {error}
                 </Alert>
             )}
-
-            {storyGenerated && storyContent && (
-                <Box
-                    sx={{
-                        width: "90%",
-                        p: 3,
-                        border: "1px solid #999",
-                        borderRadius: 1,
-                        minHeight: 120,
-                        backgroundColor: "#f9f9f9", 
-                        color: "#000"
-                    }}
-                    >
-                        {editing ? (
-                            <TextField
-                                fullWidth
-                                multiline
-                                value={editedContent}
-                                onChange={(e) => setEditedContent(e.target.value)}
-                            />
-                            ) : (
-                                <Typography 
-                                    variant="body1"
-                                    sx={{ whiteSpace: "pre-line" }}
-                                >
-                                    {editedContent}
-                                </Typography>
-                        )}
-
-                        <Box
-                            sx={{
-                                mt: 2,
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                gap: 1.5
-                            }}
-                        >
-                            {editing ? (
-                                <>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => {
-                                            setEditedContent(storyContent);
-                                            setEditing(false);
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        sx={{ 
-                                            backgroundColor: "#4CA4DA",
-                                            color: "#FFFFFF" 
-                                        }}
-                                        onClick={() => {
-                                            setStoryContent(editedContent);
-                                            setEditing(false);
-                                        }}
-                                    >
-                                        Save Story
-                                    </Button>
-                                </>
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    sx={{ 
-                                        backgroundColor: "#4CA4DA",
-                                        color: "#FFFFFF",
-                                        border: "none"
-                                    }}
-                                    onClick={() => {
-                                        setEditing(true);
-                                    }}
-                                >
-                                    Edit Story
-                                </Button>
-                            )}
-
-                        </Box>
-                </Box>
-            )}
+                
         </Box>
         </>
     )

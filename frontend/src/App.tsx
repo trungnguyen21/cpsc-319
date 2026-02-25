@@ -3,6 +3,7 @@ import './App.css'
 import { Login } from "./pages/login"
 import { Home } from "./pages/home"
 import { OrgImpacts } from "./pages/org_impacts"
+import GeneratedStory from './pages/generated_story'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/org/:orgName" element={<OrgImpacts />} />
+        <Route path="/org/:orgName/story" element={<GeneratedStory />} />
         <Route path="*" element={<Navigate to="/" replace/>} />
       </Routes>
     </Router>
