@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { Button, Box, TextField } from "@mui/material";
+import { Button, Box, TextField, Typography } from "@mui/material";
 import LoginAppBar from "../components/login_appbar";
 
 
@@ -20,7 +20,7 @@ export function Login() {
         if (user === valid_username && password === valid_password) {
             navigate("/home")
         } else {
-            setError("Invalid credentials.")
+            setError("The username and/or password you entered is incorrect")
         }
     }
     
@@ -84,6 +84,16 @@ export function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </Box>
+
+                {/* incorrect log-in credentials message */}
+                {error && (
+                    <Typography
+                        variant="body2"
+                        sx={{ color: '#D1315E', mt: 2, mb: 1, textAlign: 'center' }}
+                    >
+                        {error}
+                    </Typography>
+                )}
                 
                 <Button 
                     sx={{ 
