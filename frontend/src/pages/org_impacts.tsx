@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Box, Button, Typography, Toolbar, CircularProgress, Alert } from "@mui/material";
+import { Box, Button, Typography, Toolbar, CircularProgress, Alert, Grid, Stack } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
 import { API_BASE_URL } from "../config";
 import ListStories from "../components/list_stories";
+import ListDonors from "../components/donors";
+import OrgDetails from "../components/org_details";
 
 export function OrgImpacts() {
     const { orgName } = useParams<{ orgName: string }>();
@@ -94,29 +96,47 @@ export function OrgImpacts() {
                 {orgName} Impact Stories
             </Typography>
 
-            <ListStories />
-
-            <Button
-                variant="contained"
-                onClick={handleGenerateStory}
-                disabled={storyGenerated || loading}
+            <Grid 
+                container 
+                spacing={2} 
                 sx={{
-                    fontWeight: "bold",
-                    backgroundColor: "#D1315E",
-                    color: "#FFFFFF",
-                    textTransform: "none",
-                    alignSelf: "flex-start"
+                    mt:2
                 }}
             >
-                {loading ? (
-                    <>
-                        <CircularProgress size={20} sx={{ color: "#FFFFFF", mr: 1 }} />
-                        Generating...
-                    </>
-                ) : (
-                    "Generate New Impact Story"
-                )}
-            </Button>
+                <Grid size={{xs:12, md:9}}> 
+                    <Stack spacing={2}>
+                        <ListStories />
+                        <Button
+                            variant="contained"
+                            onClick={handleGenerateStory}
+                            disabled={storyGenerated || loading}
+                            sx={{
+                                fontWeight: "bold",
+                                backgroundColor: "#D1315E",
+                                color: "#FFFFFF",
+                                textTransform: "none",
+                                alignSelf: "flex-start"
+                            }}
+                        >
+                            {loading ? (
+                                <>
+                                    <CircularProgress size={20} sx={{ color: "#FFFFFF", mr: 1 }} />
+                                    Generating...
+                                </>
+                            ) : (
+                                "Generate New Impact Story"
+                            )}
+                        </Button>
+                    </Stack>
+                </Grid>
+
+                <Grid size={{xs:12, md:3}}>
+                    <Box>
+                        <OrgDetails />
+                        <ListDonors />
+                    </Box>
+                </Grid>
+            </Grid>
 
             {error && (
                 <Alert severity="error" sx={{ width: "90%" }}>
