@@ -1,6 +1,8 @@
-import { Box, Chip, Grid, Stack, Toolbar, Typography } from "@mui/material";
+import { Box, Chip, Grid, InputAdornment, TextField, Toolbar, Typography } from "@mui/material";
 import HomeAppBar from "../components/appbar";
 import OrgCard from "../components/org_cards";
+import { useState } from "react";
+import SearchIcon from '@mui/icons-material/Search';
 
 export function Home() {
     const dummyData = [
@@ -12,6 +14,10 @@ export function Home() {
         {id:"6", name: "Canadian Cancer Society"},
         {id:"7", name: "Alzheimer Society Canada"}
     ]
+    const [search, setSearch] = useState("");
+    //change later to fetch from backend 
+    const filtered = dummyData.filter((org) => org.name.toLowerCase().includes(search.toLowerCase()));
+    
     return (
         <>
         <HomeAppBar />
@@ -23,25 +29,58 @@ export function Home() {
                 mt: 2,
                 width:"100%",
                 textAlign: "left",
-                display: "block"
+                display: "flex",
+                flexDirection: "column"
             }}
         >
-            <Typography
-                variant="h4"
-                sx={{ 
-                    fontWeight: "bold", 
-                    color: "#1D174E",
-                    mb: 2.5
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
                 }}
             >
-                Non-Profit Organizations
-            </Typography>
+                <Typography
+                    variant="h4"
+                    sx={{ 
+                        fontWeight: "bold", 
+                        color: "#1D174E",
+                        mb: 2.5
+                    }}
+                >
+                    Non-Profit Organizations
+                </Typography>
+
+                <TextField
+                    placeholder="Search for organizations..."
+                    value={search}
+                    size="small"
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "right",
+                        width: "40%"
+                    }}
+                    onChange={(e) => setSearch(e.target.value)}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon />
+                                </InputAdornment>
+                            )
+                        }
+                    }}
+                >
+                    
+                </TextField>
+            </Box>
 
             <Box
                 sx={{
                     display:"flex",
                     gap: 1.5,
-                    ml: 2
+                    ml: 2,
                 }}
             >
                 {/* Non-functional filter tags */}
@@ -66,9 +105,10 @@ export function Home() {
 
         <Box>
             <Grid 
-                container spacing={4}
+                container spacing={2}
                 sx={{
-                    mt: 5
+                    mt: 5,
+                    width: "100%"
                 }}
             >
                 {dummyData.map((org) => (

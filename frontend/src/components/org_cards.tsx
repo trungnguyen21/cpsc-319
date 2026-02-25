@@ -16,7 +16,8 @@ export default function OrgCard ({ name }: {name: string}) {
                 backgroundColor: '#150E4C',
                 display: "flex",
                 justifyContent: "space-between",
-                flexDirection: "column"
+                flexDirection: "column",
+                mb: 2
             }}
         >
             <CardContent>
@@ -24,16 +25,22 @@ export default function OrgCard ({ name }: {name: string}) {
                     variant="subtitle1" 
                     component="div"
                     sx={{
-                        color: '#FFFFFF'
+                        color: '#FFFFFF',
+                        weight: "bold",
                     }}
                 >
                     {name}
                 </Typography>
             </CardContent>
-            <CardActions>
+            <CardActions 
+                sx={{ 
+                    justifyContent:"center",
+                    mb: 2
+                }}
+            >
                 <Button
                     sx={{
-                        mb: 0,
+                        mb: 1.5,
                         backgroundColor: '#D1315E',
                         color:'#FFFFFF',
                         fontWeight: 'bold'
