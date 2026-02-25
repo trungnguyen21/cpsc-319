@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Toolbar, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, TextField, Toolbar, Typography } from "@mui/material";
 import HomeAppBar from "../components/appbar";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -11,6 +11,16 @@ export default function GeneratedStory() {
     const [storyContent, setStoryContent] = useState<string>(storyContentFromState);
     const [editing, setEditing] = useState(false);
     const [editedContent, setEditedContent] = useState<string>(storyContentFromState);
+    const [disableButton, setDisableButton] = useState(false);
+    const [showAlert, setShowAlert] = useState("");
+    const [chipLabel, setChipLabel] = useState("In Progress");
+
+    const handleSendForReview = () => {
+        setEditing(false);
+        setDisableButton(true);
+        setShowAlert("Impact Story has been sent for review! Check back at a later time for updates.");
+        setChipLabel("Pending Approval");
+    }
 
     return (
         <>
@@ -18,12 +28,42 @@ export default function GeneratedStory() {
             
         <Toolbar />
 
-        <Typography 
-            variant="h5"
-            align="left"
+        {showAlert && (
+                <Alert
+                    severity="info"
+                    sx={{
+                        width: "95%",
+                        mb: 2
+                    }}
+                >
+                    {showAlert}
+                </Alert>
+             )}
+
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "90%"
+            }}
         >
-            Generated story
-        </Typography>
+            <Typography 
+                variant="h5"
+                align="left"
+                mb={2}
+            >
+                Impact Story #__
+            </Typography>
+            <Chip 
+                    label={chipLabel}
+                    size="small"
+                    sx = {{
+                        backgroundColor: "#EDE8B0",
+                        color: "#000000"
+                    }}
+                />
+        </Box>
 
         <Box
             sx={{
@@ -97,8 +137,10 @@ export default function GeneratedStory() {
                         </Button>
                     </>
                 ) : (
+                    <>
                     <Button
                         variant="contained"
+                        disabled={disableButton}
                         sx={{ 
                             backgroundColor: "#4CA4DA",
                             color: "#FFFFFF",
@@ -113,6 +155,26 @@ export default function GeneratedStory() {
                     >
                         Edit Story
                     </Button>
+                    <Button
+                        variant="contained"
+                        disabled={disableButton}
+                        sx={{ 
+                            backgroundColor: "#4CA4DA",
+                            color: "#FFFFFF",
+                            border: "none",
+                            "&:focus": {
+                                outline:"none"
+                            }
+                        }}
+                        onClick={() => {
+                            setEditing(false);
+                            setDisableButton(true);
+                            handleSendForReview();
+                        }}
+                    >
+                        Send for Review
+                    </Button>
+                    </>
                 )}
 
             </Box>
