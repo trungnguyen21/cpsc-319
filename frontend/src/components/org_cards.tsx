@@ -12,10 +12,9 @@ export default function OrgCard ({ name }: {name: string}) {
         <Card
             sx={{
                 width:200,
-                height:150,
+                height:175,
                 backgroundColor: '#150E4C',
                 display: "flex",
-                justifyContent: "space-between",
                 flexDirection: "column",
                 mb: 2
             }}
@@ -27,6 +26,7 @@ export default function OrgCard ({ name }: {name: string}) {
                     sx={{
                         color: '#FFFFFF',
                         weight: "bold",
+                        minHeight: "3em"
                     }}
                 >
                     {name}
@@ -35,12 +35,13 @@ export default function OrgCard ({ name }: {name: string}) {
             <CardActions 
                 sx={{ 
                     justifyContent:"center",
-                    mb: 2
+                    mt: "auto",
+                    mb: 2,
+                    pb: 2
                 }}
             >
                 <Button
                     sx={{
-                        mb: 1.5,
                         backgroundColor: '#D1315E',
                         color:'#FFFFFF',
                         fontWeight: 'bold'
