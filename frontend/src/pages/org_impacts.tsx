@@ -3,6 +3,7 @@ import { Box, Button, Typography, Toolbar, CircularProgress, Alert } from "@mui/
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
 import { API_BASE_URL } from "../config";
+import ListStories from "../components/list_stories";
 
 export function OrgImpacts() {
     const { orgName } = useParams<{ orgName: string }>();
@@ -92,6 +93,8 @@ export function OrgImpacts() {
             >
                 {orgName} Impact Stories
             </Typography>
+
+            <ListStories />
 
             <Button
                 variant="contained"
