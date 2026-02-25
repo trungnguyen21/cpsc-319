@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Typography, Toolbar, CircularProgress, Alert } from "@mui/material";
+import { Box, Button, Typography, Toolbar, CircularProgress, Alert, TextField } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
 import { API_BASE_URL } from "../config";
@@ -11,6 +11,8 @@ export function OrgImpacts() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [storyContent, setStoryContent] = useState<string>("");
+    const [editing, setEditing] = useState(false);
+    const [editedContent, setEditedContent] = useState<string>("");
 
     async function handleGenerateStory() {
         setLoading(true);
@@ -40,6 +42,7 @@ export function OrgImpacts() {
             
             const result = await response.json();
             setStoryContent(result.story);
+            setEditedContent(result.story);
             setStoryGenerated(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -130,12 +133,72 @@ export function OrgImpacts() {
                         color: "#000"
                     }}
                     >
-                    <Typography 
-                        variant="body1"
-                        sx={{ whiteSpace: "pre-line" }}
-                    >
-                        {storyContent}
-                    </Typography>
+                        {editing ? (
+                            <TextField
+                                fullWidth
+                                multiline
+                                value={editedContent}
+                                onChange={(e) => setEditedContent(e.target.value)}
+                            />
+                            ) : (
+                                <Typography 
+                                    variant="body1"
+                                    sx={{ whiteSpace: "pre-line" }}
+                                >
+                                    {editedContent}
+                                </Typography>
+                        )}
+
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 1.5
+                            }}
+                        >
+                            {editing ? (
+                                <>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => {
+                                            setEditedContent(storyContent);
+                                            setEditing(false);
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        sx={{ 
+                                            backgroundColor: "#4CA4DA",
+                                            color: "#FFFFFF" 
+                                        }}
+                                        onClick={() => {
+                                            setStoryContent(editedContent);
+                                            setEditing(false);
+                                        }}
+                                    >
+                                        Save Story
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    sx={{ 
+                                        backgroundColor: "#4CA4DA",
+                                        color: "#FFFFFF",
+                                        border: "none"
+                                    }}
+                                    onClick={() => {
+                                        setEditing(true);
+                                    }}
+                                >
+                                    Edit Story
+                                </Button>
+                            )}
+
+                        </Box>
                 </Box>
             )}
         </Box>
