@@ -112,15 +112,6 @@ export default function HomeAppBar() {
                                 </MenuItem>
                             </Menu>
                             
-                            
-                            <Typography
-                                variant="body1"
-                                sx= {{
-                                    color: "#1D174E"
-                                }}
-                            >
-                                Help
-                            </Typography>
                         </Box>
                     </Box>
                 </Toolbar>
