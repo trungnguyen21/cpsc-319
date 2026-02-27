@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { Button, Box, TextField, Typography, Alert } from "@mui/material";
+import { Button, Box, TextField, Alert } from "@mui/material";
 import LoginAppBar from "../components/login_appbar";
 
 
@@ -18,7 +18,7 @@ export function Login() {
     const handleLogin = (e: React.SyntheticEvent) => {
         e.preventDefault()
         if (user === valid_username && password === valid_password) {
-            navigate("/home")
+            navigate("/dashboard")
         } else {
             setError("The username and/or password you entered is incorrect.")
         }

@@ -80,7 +80,7 @@ export function OrgImpacts() {
                     alignSelf: "flex-start"
                 }}
             >
-                Home
+                Return to Non-Profits Home
             </Button>
 
             <Typography

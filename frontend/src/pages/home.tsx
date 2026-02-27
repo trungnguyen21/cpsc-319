@@ -1,4 +1,5 @@
-import { Box, Chip, Grid, Stack, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Chip, Grid, Toolbar, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
 import OrgCard from "../components/org_cards";
 
@@ -12,6 +13,8 @@ export function Home() {
         {id:"6", name: "Canadian Cancer Society"},
         {id:"7", name: "Alzheimer Society Canada"}
     ]
+    const navigate = useNavigate();
+
     return (
         <>
         <HomeAppBar />
@@ -26,16 +29,39 @@ export function Home() {
                 display: "block"
             }}
         >
-            <Typography
-                variant="h4"
-                sx={{ 
-                    fontWeight: "bold", 
-                    color: "#1D174E",
-                    mb: 2.5
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3
                 }}
             >
-                Non-Profit Organizations
-            </Typography>
+                <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate("/dashboard")}
+                    sx={{
+                        backgroundColor: "#4CA4DA",
+                        color: "#FFFFFF",
+                        textTransform: "none",
+                        alignSelf: "flex-start"
+                    }}
+                >
+                    Return to Dashboard
+                </Button>
+
+                <Typography
+                    variant="h4"
+                    sx={{ 
+                        fontWeight: "bold", 
+                        color: "#1D174E",
+                        mb: 2.5
+                    }}
+                >
+                    Non-Profit Organizations
+                </Typography>
+
+            </Box>
 
             <Box
                 sx={{
