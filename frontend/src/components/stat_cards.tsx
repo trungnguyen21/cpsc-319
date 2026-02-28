@@ -6,7 +6,7 @@ export default function StatCard({ title, value }: { title: string; value: strin
       sx={{
         width: 150,
         height: 150,
-        backgroundColor: "#150E4C",
+        backgroundColor: "#F5F5F5",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -17,7 +17,7 @@ export default function StatCard({ title, value }: { title: string; value: strin
         <Typography
           variant="subtitle1"
           sx={{
-            color: "#FFFFFF",
+            color: "#1D174E",
             fontWeight: 500
           }}
         >

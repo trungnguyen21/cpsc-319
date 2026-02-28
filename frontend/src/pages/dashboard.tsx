@@ -32,7 +32,7 @@ export function Dashboard() {
                 Dashboard
             </Typography>
 
-            {/* Trending Section */}
+            {/* Non-Profit Organizations Section */}
             <Box
                 sx={{
                     display: "flex",
@@ -60,29 +60,51 @@ export function Dashboard() {
             </Box>
 
 
-            {/* Impact Story Operations Section */}
+            {/* Impact Story Metrics Section */}
             <Box>
-                <Typography
-                    variant="h5"
+                <Box
                     sx={{
-                        fontWeight: "bold",
-                        color: "#1D174E"
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5
                     }}
                 >
-                    Impact Story Operations
-                </Typography>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold",
+                            color: "#1D174E"
+                        }}
+                    >
+                        Impact Story Metrics
+                    </Typography>
+
+                    <Button
+                        size="small"
+                        variant="contained"
+                        disabled
+                        sx={{
+                            backgroundColor: "#4CA4DA",
+                            color: "#FFFFFF",
+                            textTransform: "none",
+                            alignSelf: "flex-start"
+                        }}
+                    >
+                        Edit Metrics
+                    </Button>
+                </Box>
 
                 <Box>
                     <Grid 
                         container spacing={4}
                         sx={{
-                            mt: 5
+                            mt: 3
                         }}
                     >
-                        <StatCard title="Pending Approval" value="12" />
-                        <StatCard title="Stale Stories" value="8" />
-                        <StatCard title="Auto-Generated" value="124" />
-                        <StatCard title="Generation Cycle" value="Weekly" />
+                        <StatCard title="Pending Approval" value="20" />
+                        <StatCard title="Stale Stories" value="10" />
+                        <StatCard title="Auto-Generated" value="150" />
+                        <StatCard title="Generation Cycle" value="Monthly" />
                     </Grid>
                 </Box>
             </Box>
