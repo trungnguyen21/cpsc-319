@@ -1,10 +1,23 @@
 import { AccountCircle } from "@mui/icons-material"
-import { AppBar, Box, Toolbar, Typography } from "@mui/material"
+import { AppBar, Box, IconButton, Menu, MenuItem, Toolbar, Typography } from "@mui/material"
+import React from "react";
 import { useNavigate } from "react-router-dom"
 
 
 export default function HomeAppBar() {
     const navigate = useNavigate()
+
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    }
+    const handlecloseMenu = () => {
+        setAnchorEl(null);
+    }
+    const handleLogout = () => {
+        navigate("/")
+    }
 
     return (
         <Box
@@ -60,22 +73,45 @@ export default function HomeAppBar() {
                             alignItems="center"
                             gap={2}
                         >
-                            <AccountCircle
+                            <IconButton 
+                                onClick={handleOpenMenu}
                                 sx={{
-                                    color:"#1D174E",
-                                    fontSize: 40
-                                }}
-                            > 
-                            </AccountCircle>
-                            
-                            <Typography
-                                variant="body1"
-                                sx= {{
-                                    color: "#1D174E"
+                                    "&:focus": {
+                                        outline:"none"
+                                    }
                                 }}
                             >
-                                Help
-                            </Typography>
+                                <AccountCircle
+                                    sx={{
+                                        color:"#1D174E",
+                                        fontSize: 40
+                                    }}
+                                /> 
+                            </IconButton>
+
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handlecloseMenu}
+                                anchorOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                            >
+                                <MenuItem
+                                    onClick={() => {
+                                        handleLogout()
+                                        handlecloseMenu()
+                                    }}
+                                >
+                                Log Out
+                                </MenuItem>
+                            </Menu>
+                            
                         </Box>
                     </Box>
                 </Toolbar>
