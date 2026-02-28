@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom";
 import { Button, Box, TextField } from "@mui/material";
 import LoginAppBar from "../components/login_appbar";
-
+import apiClient from "../config";
 
 // MUI text field: https://mui.com/material-ui/react-text-field/
 export function Login() {
@@ -12,16 +12,34 @@ export function Login() {
     //const [showPassword, setShowPass] = useState(false)
     const navigate = useNavigate();
 
-    const valid_username = 'benevity_user'
-    const valid_password = 'alpine' 
-
     const handleLogin = (e: React.SyntheticEvent) => {
-        e.preventDefault()
-        if (user === valid_username && password === valid_password) {
-            navigate("/home")
-        } else {
-            setError("Invalid credentials.")
+        e.preventDefault();
+        setError('');
+
+    apiClient.post(
+        '/login',
+        new URLSearchParams({
+            username: user,
+            password: password
+        }),
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         }
+    )
+        .then(response => {
+            // Save token to localStorage and navigate to dashboard
+            if (response.data && (response.data.access_token)) {
+                localStorage.setItem('token', response.data.access_token);
+            }
+            navigate('/home');
+        })
+        .catch(err => {
+            localStorage.removeItem('token');
+            console.log(err)
+            setError('Invalid username or password');
+        });
     }
     
     return (

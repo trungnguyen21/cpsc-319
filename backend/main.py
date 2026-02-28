@@ -10,6 +10,7 @@ from app.models import User
 from app.dependencies import get_current_user
 from app.routers import auth, dashboard, stories
 from app.config import POSTGRES_URI
+from fastapi.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,15 @@ async def lifespan(app: FastAPI):
     await app.state.db_manager.close_connection()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
+
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(stories.router)
