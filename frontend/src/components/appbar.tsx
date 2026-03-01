@@ -16,7 +16,7 @@ export default function HomeAppBar() {
                 sx= {{
                     width: "100%",
                     backgroundColor: '#F5F5F5',
-                    color: '1D174E'
+                    color: '#1D174E'
                 }}
             >
                 <Toolbar>

@@ -1,15 +1,54 @@
 import { useState } from "react";
-import { Box, Button, Typography, Toolbar } from "@mui/material";
+import { Box, Button, Typography, Toolbar, CircularProgress, Alert, TextField } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import HomeAppBar from "../components/appbar";
+import { API_BASE_URL } from "../config";
 
 export function OrgImpacts() {
     const { orgName } = useParams<{ orgName: string }>();
     const navigate = useNavigate();
     const [storyGenerated, setStoryGenerated] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [storyContent, setStoryContent] = useState<string>("");
+    const [editing, setEditing] = useState(false);
+    const [editedContent, setEditedContent] = useState<string>("");
 
-    function handleGenerateStory() {
-        setStoryGenerated(true);
+    async function handleGenerateStory() {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const prompt = [
+                `A donor from Vancouver recently contributed $100 to ${orgName}.`,
+                "Focus specifically on recent efforts in Canada.",
+                "Combine verified financial metrics from their annual reports with recent news to close the feedback loop for the donor."
+            ].join(" ");
+
+            const response = await fetch(`${API_BASE_URL}/stories/generation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    orgID: orgName,
+                    user_prompt: prompt
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to generate story: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            setStoryContent(result.story);
+            setEditedContent(result.story);
+            setStoryGenerated(true);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -41,7 +80,7 @@ export function OrgImpacts() {
                     alignSelf: "flex-start"
                 }}
             >
-                Home
+                Return to Non-Profits Home
             </Button>
 
             <Typography
@@ -57,7 +96,7 @@ export function OrgImpacts() {
             <Button
                 variant="contained"
                 onClick={handleGenerateStory}
-                disabled={storyGenerated}
+                disabled={storyGenerated || loading}
                 sx={{
                     fontWeight: "bold",
                     backgroundColor: "#D1315E",
@@ -66,25 +105,100 @@ export function OrgImpacts() {
                     alignSelf: "flex-start"
                 }}
             >
-                Generate New Impact Story
+                {loading ? (
+                    <>
+                        <CircularProgress size={20} sx={{ color: "#FFFFFF", mr: 1 }} />
+                        Generating...
+                    </>
+                ) : (
+                    "Generate New Impact Story"
+                )}
             </Button>
 
-            {storyGenerated && (
+            {error && (
+                <Alert severity="error" sx={{ width: "90%" }}>
+                    {error}
+                </Alert>
+            )}
+
+            {storyGenerated && storyContent && (
                 <Box
                     sx={{
                         width: "90%",
                         p: 3,
-                        border: "1px dashed #999",
+                        border: "1px solid #999",
                         borderRadius: 1,
-                        minHeight: 120
+                        minHeight: 120,
+                        backgroundColor: "#f9f9f9", 
+                        color: "#000"
                     }}
                     >
-                    <Typography 
-                        variant="body1"
-                        color="text.secondary"
-                    >
-                        This is an impact story placeholder.
-                    </Typography>
+                        {editing ? (
+                            <TextField
+                                fullWidth
+                                multiline
+                                value={editedContent}
+                                onChange={(e) => setEditedContent(e.target.value)}
+                            />
+                            ) : (
+                                <Typography 
+                                    variant="body1"
+                                    sx={{ whiteSpace: "pre-line" }}
+                                >
+                                    {editedContent}
+                                </Typography>
+                        )}
+
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 1.5
+                            }}
+                        >
+                            {editing ? (
+                                <>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => {
+                                            setEditedContent(storyContent);
+                                            setEditing(false);
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        sx={{ 
+                                            backgroundColor: "#4CA4DA",
+                                            color: "#FFFFFF" 
+                                        }}
+                                        onClick={() => {
+                                            setStoryContent(editedContent);
+                                            setEditing(false);
+                                        }}
+                                    >
+                                        Save Story
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    sx={{ 
+                                        backgroundColor: "#4CA4DA",
+                                        color: "#FFFFFF",
+                                        border: "none"
+                                    }}
+                                    onClick={() => {
+                                        setEditing(true);
+                                    }}
+                                >
+                                    Edit Story
+                                </Button>
+                            )}
+
+                        </Box>
                 </Box>
             )}
         </Box>

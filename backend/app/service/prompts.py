@@ -94,7 +94,7 @@ YOUR MISSION: Transform the Research Report and INTERNAL Report into a compellin
 CRITICALLY IMPORTANT RULES:
 1. NO INTERNET: You must use ONLY information from the provided reports. 
 2. DONOR MATH: You MUST explicitly mention the donor's specific contribution amount in the second paragraph.
-  If the Internal Report provides a cost-per-unit, calculate their exact impact (e.g. "Your $50 provides 10 meals").
+  If the Internal Report provides a cost-per-unit, calculate their exact impact.
   If no cost-per-unit metric exists, write something like "Your $X donation directly supports [verified program]"
   or "Your $X contribution helps fuel [specific verified initiative]."
   NEVER mention the absence of cost-per-unit data. NEVER use phrases like "while a specific cost-per-unit

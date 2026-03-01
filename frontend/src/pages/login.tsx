@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { Button, Box, TextField } from "@mui/material";
+import { Button, Box, TextField, Alert } from "@mui/material";
 import LoginAppBar from "../components/login_appbar";
 
 
@@ -18,9 +18,9 @@ export function Login() {
     const handleLogin = (e: React.SyntheticEvent) => {
         e.preventDefault()
         if (user === valid_username && password === valid_password) {
-            navigate("/home")
+            navigate("/dashboard")
         } else {
-            setError("Invalid credentials.")
+            setError("The username and/or password you entered is incorrect.")
         }
     }
     
@@ -61,41 +61,62 @@ export function Login() {
             >
                 <p style={{ margin: 0}}>Sign In</p>
 
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1.5
-                    }}
+                {/* incorrect log-in credentials message */}
+                {error && (
+                    <Alert
+                        severity="error"
+                        sx={{
+                            width: "95%",
+                            textAlign: "left",
+                        }}
+                    >
+                        {error}
+                    </Alert>
+                )}
+
+                <form
+                    onSubmit={handleLogin}
                 >
-                    <TextField 
-                        id="username" 
-                        label="Username*" 
-                        variant="standard"
-                        value={user}
-                        onChange={(e) => setUser(e.target.value)}
-                    />
-                    <TextField 
-                        id="password" 
-                        label="Password*" 
-                        variant="standard"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </Box>
-                
-                <Button 
-                    sx={{ 
-                        mt: 4, 
-                        backgroundColor: "#D1315E",
-                        width: 190
-                    }}
-                    variant="contained"
-                    onClick={handleLogin}
-                >
-                    Sign In
-                </Button>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1.5,
+                            mt: 2
+                        }}
+                    >
+                        <TextField 
+                            id="username" 
+                            label="Username*" 
+                            variant="standard"
+                            value={user}
+                            onChange={(e) => setUser(e.target.value)}
+                            autoComplete="off"
+                        />
+                        <TextField 
+                            id="password" 
+                            label="Password*" 
+                            variant="standard"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="off"
+                        />
+                    </Box>
+                    
+                    <Button 
+                        sx={{ 
+                            mt: 4, 
+                            backgroundColor: "#D1315E",
+                            width: 190
+                        }}
+                        variant="contained"
+                        type="submit"
+                    >
+                        Sign In
+                    </Button>
+
+                </form>
         
             </Box>
 
