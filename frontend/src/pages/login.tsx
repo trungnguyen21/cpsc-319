@@ -91,6 +91,7 @@ export function Login() {
                             variant="standard"
                             value={user}
                             onChange={(e) => setUser(e.target.value)}
+                            autoComplete="off"
                         />
                         <TextField 
                             id="password" 
@@ -99,6 +100,7 @@ export function Login() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="off"
                         />
                     </Box>
                     
